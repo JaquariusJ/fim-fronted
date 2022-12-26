@@ -6,16 +6,18 @@
         <img src="@/assets/img/logo.jpg">
       </div>
       <!--      登录表单区域-->
-      <el-form :rules="loginFromRules" label-width="1px" class="login_form" :model="user">
-        <el-form-item  prop="username">
+      <el-form ref="loginFromRef" :rules="loginFromRules" label-width="1px" class="login_form" :model="loginUser">
+        <el-form-item  prop="userName">
           <el-input
-              v-model="user.username"
+              v-model="loginUser.userName"
               placeholder="请输入用户名"
-              :prefix-icon="User"/>
+              :prefix-icon="User"
+          />
         </el-form-item>
-        <el-form-item>
+        <el-form-item prop="passWord">
           <el-input
-              v-model="user.password"
+              @keyup.enter="loginIn()"
+              v-model="loginUser.passWord"
               type="password"
               placeholder="请输入密码"
               show-password
@@ -23,8 +25,8 @@
           />
         </el-form-item>
         <el-form-item class="btns">
-          <el-button type="primary" plain>登录</el-button>
-          <el-button type="success" plain>注册</el-button>
+          <el-button plain type="primary" @click="loginIn()">登录</el-button>
+          <el-button type="success" plain @click="$router.push('/login')">注册</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -34,24 +36,70 @@
 
 
 <script>
-import {User, Lock} from "@element-plus/icons-vue";
+import {Lock, User} from "@element-plus/icons-vue";
+import {devServer} from "@/network/requests";
+import { ElMessage } from 'element-plus'
+
+
+const login_error = () => {
+  ElMessage({
+    message: "用户名或密码错误",
+    type: 'error'
+  })
+}
+
+const login_success = () => {
+  ElMessage({
+    message: "登录成功",
+    type: 'success'
+  })
+}
+
+
 
 export default {
-  name: "Login",
+  name: "login",
   data() {
     return {
       User,
       Lock,
-      user: {
-        username: "xiaojian",
-        password: "111"
+      loginUser: {
+        userName: "",
+        passWord: ""
       },
       loginFromRules: {
-        username: [
-          { required: true, message: '用户名不能为空', trigger: 'blur' },
-          { min: 6, max: 18, message: '用户名长度在6-18之间', trigger: 'blur' },
+        userName: [
+          {required: true, message: '用户名不能为空', trigger: 'blur'},
+          {min: 5, max: 18, message: '用户名长度在5-18之间', trigger: 'blur'},
+        ],
+        passWord: [
+          {required: true, message: '密码不能为空', trigger: 'blur'}
         ]
-      }
+      },
+
+    }
+  },
+  methods: {
+    loginIn() {
+      this.$refs.loginFromRef.validate(valid => {
+        if(!valid){return};
+        //发送请求
+        devServer({
+          url: "/login",
+          method: "post",
+          data: this.loginUser
+        }).then(res => {
+          if(res.data.code !== 200){
+            login_error()
+          }else{
+            login_success()
+            this.$router.push("/home")
+          }
+        }).catch(error => {
+          console.log(error);
+        })
+      });
+
     }
   }
 }
