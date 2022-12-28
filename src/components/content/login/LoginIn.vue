@@ -7,17 +7,17 @@
       </div>
       <!--      登录表单区域-->
       <el-form ref="loginFromRef" :rules="loginFromRules" label-width="1px" class="login_form" :model="loginUser">
-        <el-form-item  prop="userName">
+        <el-form-item  prop="username">
           <el-input
-              v-model="loginUser.userName"
+              v-model="loginUser.username"
               placeholder="请输入用户名"
               :prefix-icon="User"
           />
         </el-form-item>
-        <el-form-item prop="passWord">
+        <el-form-item prop="password">
           <el-input
               @keyup.enter="loginIn()"
-              v-model="loginUser.passWord"
+              v-model="loginUser.password"
               type="password"
               placeholder="请输入密码"
               show-password
@@ -26,7 +26,7 @@
         </el-form-item>
         <el-form-item class="btns">
           <el-button plain type="primary" @click="loginIn()">登录</el-button>
-          <el-button type="success" plain @click="$router.push('/login')">注册</el-button>
+          <el-button type="success" plain @click="$router.push('/registry')">注册</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -41,22 +41,6 @@ import {devServer} from "@/network/requests";
 import { ElMessage } from 'element-plus'
 
 
-const login_error = () => {
-  ElMessage({
-    message: "用户名或密码错误",
-    type: 'error'
-  })
-}
-
-const login_success = () => {
-  ElMessage({
-    message: "登录成功",
-    type: 'success'
-  })
-}
-
-
-
 export default {
   name: "login",
   data() {
@@ -64,15 +48,15 @@ export default {
       User,
       Lock,
       loginUser: {
-        userName: "",
-        passWord: ""
+        username: "",
+        password: ""
       },
       loginFromRules: {
-        userName: [
+        username: [
           {required: true, message: '用户名不能为空', trigger: 'blur'},
           {min: 5, max: 18, message: '用户名长度在5-18之间', trigger: 'blur'},
         ],
-        passWord: [
+        password: [
           {required: true, message: '密码不能为空', trigger: 'blur'}
         ]
       },
@@ -90,17 +74,29 @@ export default {
           data: this.loginUser
         }).then(res => {
           if(res.data.code !== 200){
-            login_error()
+            this.login_error()
           }else{
-            login_success()
+            this.login_success()
             this.$router.push("/home")
           }
         }).catch(error => {
           console.log(error);
         })
       });
-
+    },
+    login_success() {
+      ElMessage({
+        message: "登录成功",
+        type: 'success'
+      })
+    },
+    login_error() {
+      ElMessage({
+        message: "用户名或密码错误",
+        type: 'error'
+      })
     }
+
   }
 }
 
