@@ -5,7 +5,7 @@
       <el-form ref="registryFromRef" :rules="registryFromRules" label-width="auto"  class="registry-Form"
                :size="formSize" :model="registryUser">
         <!--      头像区域-->
-        <el-form-item prop="headImg" class="headImg" required show-message>
+        <el-form-item prop="headImg" class="headImg" show-message>
           <div class="avatar_box">
             <upload-header></upload-header>
           </div>
@@ -24,9 +24,9 @@
           />
         </el-form-item>
 
-        <el-form-item label="确认密码" prop="confirmPassWord" required >
+        <el-form-item label="确认密码" required >
           <el-input
-              v-model="registryUser.confirmPassWord"
+              v-model="confirmPassWord"
               type="password"
               show-password
               clearable
@@ -36,17 +36,17 @@
 
         <el-form-item label="性别" prop="sex" required>
           <el-radio-group v-model="registryUser.sex">
-            <el-radio label="1">帅哥</el-radio>
-            <el-radio label="0">美女</el-radio>
+            <el-radio label="1">GG</el-radio>
+            <el-radio label="0">MM</el-radio>
           </el-radio-group>
         </el-form-item>
 
         <el-form-item label="生日" required>
           <el-col :span="11">
-            <el-form-item prop="birthDay">
+            <el-form-item prop="birthday">
               <el-date-picker
-                  v-model="registryUser.birthDay"
-                  value-format="yyyy-MM-dd"
+                  v-model="registryUser.birthday"
+                  value-format="YYYY-MM-DD"
                   type="date"
                   label="Pick a date"
                   placeholder=""
@@ -66,8 +66,8 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button plain type="primary" @click="registryUserInfo()" :loading="registry_loading">注册一个</el-button>
-          <el-button type="success" plain @click="$router.push('/login')">返回登录</el-button>
+          <el-button plain type="primary" @click="registryUserInfo()" :loading="registry_loading">Confirm</el-button>
+          <el-button type="success" plain @click="$router.push('/login')">back to Login</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -78,6 +78,7 @@
 import { ElMessage } from 'element-plus'
 import {devServer} from "@/network/requests";
 import UploadHeader from '@/components/common/UploadHeader.vue'
+import {encodePassWord} from "@/common/utils/security";
 
 export default {
   name: "Registry",
@@ -94,11 +95,11 @@ export default {
 
     return {
       registry_loading: false,
+      confirmPassWord: "",
       registryUser: {
         headImg: "",
         username: "",
         password: "",
-        confirmPassWord: "",
         sex: "1",
         birthday: "",
         email: "",
@@ -107,19 +108,20 @@ export default {
 
       registryFromRules: {
         headImg: [
-          {required: true, message: '头像需要上传', trigger: 'blur'},
+          {message: '头像需要上传', trigger: 'blur'},
         ],
         username: [
           {required: true, message: '用户名不能为空', trigger: 'blur'},
           {min: 4, max: 16, message: '用户名长度在4-16之间', trigger: 'blur'},
-          {pattern: "^[a-zA-Z0-9_-]{4,16}$",message: "用户名不合法", trigger: 'blur'}
+          {pattern: "^[a-zA-Z0-9_-]{4,16}$",message: "用户名不合法", trigger: 'blur'},
+          {validator: this.check_user_exist,trigger: 'blur'}
         ],
         password: [
           {required: true, message: '密码不能为空', trigger: 'blur'}
         ],
         confirmPassWord: [
           {required: true, message: '密码不能为空', trigger: 'blur'},
-          {validator: validate_pass,trigger: 'blur'}
+          {validator: this.validate_pass,trigger: 'blur'}
         ],
         birthday: [
           {required: true, message: '生日不能为空', trigger: 'blur'},
@@ -140,10 +142,11 @@ export default {
       this.$refs.registryFromRef.validate(valid => {
         if(!valid){return};
         this.registry_loading = true
+        this.registryUser.password = encodePassWord(this.registryUser.password)
         console.log(this.registryUser);
         //发送请求
         devServer({
-          url: "/registry",
+          url: "/registry/createUser",
           method: "post",
           data: this.registryUser
         }).then(res => {
@@ -163,7 +166,7 @@ export default {
     },
     registry_error(){
       ElMessage({
-        message: "注册失败",
+        message: "服务器异常",
         type: 'error'
       })
     },
@@ -173,6 +176,32 @@ export default {
         type: 'success'
       })
     },
+    validate_pass(rule,value,callback) {
+      if(value.length !== this.registryUser.password.length){
+        callback(new Error("与密码长度不匹配"))
+      }else if(value !== this.registryUser.password){
+        callback(new Error("与原密码不匹配"))
+      }else{
+        callback()
+      }
+    },
+    check_user_exist(rule,value,callback){
+      devServer({
+        url: "/registry/checkUserExist",
+        method: "get",
+        params: {
+          username: this.registryUser.username
+        }
+      }).then(res => {
+        if(res.data.data ===true){
+          callback(new Error("用户名已存在"))
+        }else{
+          callback()
+        }
+      }).catch(error => {
+        this.registry_error()
+      })
+    }
 
   },
   components: {
@@ -190,7 +219,7 @@ export default {
 .registry-box {
   width: 600px;
   height: 600px;
-  background-color: #ffffff;
+  background-color: #1b2a32;
   border-radius: 3px;
   position: absolute;
   left: 50%;
