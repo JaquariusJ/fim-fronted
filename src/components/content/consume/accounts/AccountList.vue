@@ -92,8 +92,6 @@ import {devServer} from "@/network/requests";
 
 export default {
   name: "KeepAccount",
-  created() {
-  },
   data(){
     return {
       Edit,

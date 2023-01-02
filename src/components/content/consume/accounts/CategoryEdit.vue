@@ -3,7 +3,6 @@
       v-model="subInnerDrawer"
       title="类别管理"
       :append-to-body="true"
-      :open="getIconListByType(activeTypeCode)"
   >
     <el-space
         fill

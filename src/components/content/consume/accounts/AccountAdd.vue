@@ -16,12 +16,18 @@
               <el-popover
                   placement="right"
                   width="400"
-                  trigger="click">
+                  trigger="click"
+                  hide-after="100"
+                  v-model:visible="evaluateVisible"
+              >
                 <template #reference>
-                  <icon-item :icon-file-name="selectIcon.logoName" :back-color="selectIconBackColor"></icon-item>
+                  <icon-item :icon-file-name="showIcon.logoName" back-color="#fca60b"></icon-item>
                 </template>
+<!-- 类别显示的组件-->
+                <category-list @showicon="showSelectIcon" :evaluate-visible="evaluateVisible" @closePopover="closePopover"></category-list>
               </el-popover>
               <el-link type="primary" @click="innerDrawer = true">类别管理</el-link>
+<!-- 类别编辑的组件-->
               <category-edit v-model="innerDrawer"></category-edit>
             </el-form-item>
 
@@ -63,6 +69,7 @@ import {toRaw} from "vue";
 
 import CategoryEdit from "@/components/content/consume/accounts/CategoryEdit.vue";
 import IconItem from "@/components/SvgIcon/IconItem.vue";
+import CategoryList from "@/components/content/consume/accounts/CategoryList.vue";
 
 export default {
   name: "AccountAdd",
@@ -70,7 +77,8 @@ export default {
     return {
       selectIconBackColor: '#fca60b',
       isSelected: false,
-      selectIcon: {
+      evaluateVisible: false,
+      showIcon: {
         logoName: "canyin",
         title: "餐饮"
       },
@@ -102,12 +110,19 @@ export default {
     },
     subDialog(new_value){
       this.$emit('input',new_value)
-
     }
   },
   methods: {
+    showSelectIcon(item){
+      this.showIcon = item
+    },
+    closePopover(newValue){
+      console.log(newValue);
+      this.evaluateVisible = newValue
+    }
   },
   components: {
+    CategoryList,
     IconItem,
     CategoryEdit
   }
