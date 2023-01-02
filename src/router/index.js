@@ -5,11 +5,14 @@ const Home = () => import("@/components/content/home/Home.vue")
 
 const Registry = () => import("@/components/content/registry/Registry.vue")
 
+const keepAccount = () => import("@/components/content/consume/accounts/AccountList.vue")
+
+const reports = () => import('@/components/content/consume/reports/ReportsList.vue')
 
 const routes = [
   {
     path: "",
-    component: LoginIn
+    redirect: "/accounts"
   },
   {
     path: "/login",
@@ -21,7 +24,21 @@ const routes = [
   },
   {
     path: "/home",
-    component: Home
+    component: Home,
+    children: [
+      {
+        path: "/",
+        redirect: "/accounts"
+      },
+      {
+        path: "/accounts",
+        component: keepAccount
+      },
+      {
+        path: "/reports",
+        component: reports
+      }
+    ]
   }
 ]
 
@@ -31,4 +48,5 @@ const router = createRouter({
 })
 
 export default router
+
 

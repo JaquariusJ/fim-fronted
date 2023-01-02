@@ -78,14 +78,16 @@ export default {
           method: "post",
           data: this.loginUser
         }).then(res => {
-          if(res.data.code !== 200){
+          let token = res.data.token;
+          window.localStorage.setItem("token",token)
+          if(res.code !== 200){
             this.login_error()
           }else{
             this.login_success()
             this.$router.push("/home")
           }
         }).catch(error => {
-         this.server_error()
+          this.server_error()
         }).finally(()=>{
           this.login_ing = false;
         })
@@ -125,7 +127,7 @@ export default {
   width: 450px;
   height: 300px;
   background-color: #1b2a32;
-  border-radius: 3px;
+  border-radius: 10%;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -137,6 +139,7 @@ export default {
   font: italic bold 3em "Bauhaus 93",serif;
   padding-left: 20%;
   color: #ffffff;
+  text-shadow: 15px 10px 10px black;
 }
 
 .login-box .avatar_box {

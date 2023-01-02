@@ -1,15 +1,19 @@
 <template>
   <div class="registry_container">
     <div class="registry-box">
+
+      <div class="title">
+        <div>welcome to fim</div>
+      </div>
       <!--      登录表单区域-->
       <el-form ref="registryFromRef" :rules="registryFromRules" label-width="auto"  class="registry-Form"
                :size="formSize" :model="registryUser">
         <!--      头像区域-->
-        <el-form-item prop="headImg" class="headImg" show-message>
-          <div class="avatar_box">
-            <upload-header></upload-header>
-          </div>
-        </el-form-item>
+<!--        <el-form-item prop="headImg" class="headImg" show-message>-->
+<!--          <div class="avatar_box">-->
+<!--            <upload-header></upload-header>-->
+<!--          </div>-->
+<!--        </el-form-item>-->
 
         <el-form-item label="用户名" prop="username" required >
           <el-input v-model="registryUser.username" clearable/>
@@ -78,20 +82,10 @@
 import { ElMessage } from 'element-plus'
 import {devServer} from "@/network/requests";
 import UploadHeader from '@/components/common/UploadHeader.vue'
-import {encodePassWord} from "@/common/utils/security";
 
 export default {
   name: "Registry",
   data(){
-    const validate_pass = (rule,value,callback) =>{
-        if(value.length !== this.registryUser.password.length){
-          callback(new Error("与密码长度不匹配"))
-        }else if(value !== this.registryUser.password){
-          callback(new Error("与原密码不匹配"))
-        }else{
-          callback()
-        }
-    }
 
     return {
       registry_loading: false,
@@ -142,8 +136,6 @@ export default {
       this.$refs.registryFromRef.validate(valid => {
         if(!valid){return};
         this.registry_loading = true
-        this.registryUser.password = encodePassWord(this.registryUser.password)
-        console.log(this.registryUser);
         //发送请求
         devServer({
           url: "/registry/createUser",
@@ -220,7 +212,7 @@ export default {
   width: 600px;
   height: 600px;
   background-color: #1b2a32;
-  border-radius: 3px;
+  border-radius: 10%;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -254,11 +246,19 @@ export default {
 
 .registry-Form {
   position: absolute;
-  top: 25%;
+  top: 20%;
   bottom: 10%;
   width: 100%;
   padding: 0 20px;
   box-sizing: border-box;
+}
+
+.registry-box .title{
+  font: italic bold 3em "Bauhaus 93",serif;
+  margin-top: 5%;
+  padding-left: 20%;
+  color: #ffffff;
+  text-shadow: 15px 10px 10px black;
 }
 
 </style>

@@ -1,28 +1,33 @@
 <template>
-  <el-upload
-      class="avatar-uploader"
-      :headers='headers'
-      action="/api/permission/file/upload"
-      :show-file-list="false"
-      accept=".jpg,.png,.gif,.jpeg"
-      :on-success="handleAvatarSuccess"
-      :before-upload="beforeAvatarUpload">
-    <el-image v-if="avator" :src="avator" class="avatar" />
-    <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
-  </el-upload>
+<!--  <el-dialog title="更换头像"-->
+<!--             :visible.sync="avatarDialog"-->
+<!--             width="80%">-->
+    <el-upload
+        class="avatar-uploader"
+        :headers='headers'
+        action="http://localhost:8090/registry/uploadUserHeadImg"
+        :show-file-list="false"
+        :on-success="handleAvatarSuccess"
+        :before-upload="beforeAvatarUpload">
+      <el-image v-if="imageUrl" :src="imageUrl" class="avatar" />
+      <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+    </el-upload>
+<!--  </el-dialog>-->
 </template>
 
 <script>
 // 引入loading
 import { ElMessage } from 'element-plus'
-let loadingInstance = null
+import { Plus } from '@element-plus/icons-vue'
+
 export default {
   data () {
     return {
       // 设置上传的请求头部
       headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('Authorization')
-      }
+      },
+      imageUrl: '',
+      avatarDialog: false
     }
   },
   props: {
@@ -36,7 +41,7 @@ export default {
   },
   methods: {
     // 上传校验
-    beforeAvatarUpload (file) {
+    beforeAvatarUpload (rawFile) {
       if (rawFile.type !== 'image/jpeg') {
         ElMessage.error('Avatar picture must be JPG format!')
         return false
@@ -47,8 +52,10 @@ export default {
       return true
     },
     // 上传成功
-    handleAvatarSuccess (res, file) {
-      imageUrl.value = URL.createObjectURL(uploadFile.raw)
+    handleAvatarSuccess (response, uploadFile) {
+      this.imageUrl.value = URL.createObjectURL(uploadFile.raw)
+      this.$message.success("上传成功")
+      console.log(this.imageUrl.value);
     },
   }
 }
