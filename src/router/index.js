@@ -5,7 +5,7 @@ const Home = () => import("@/components/content/home/Home.vue")
 
 const Registry = () => import("@/components/content/registry/Registry.vue")
 
-const keepAccount = () => import("@/components/content/consume/accounts/AccountList.vue")
+const keepAccount = () => import("@/components/content/consume/accounts/AccountList")
 
 const reports = () => import('@/components/content/consume/reports/ReportsList.vue')
 
@@ -27,7 +27,7 @@ const routes = [
     component: Home,
     children: [
       {
-        path: "/",
+        path: "",
         redirect: "/accounts"
       },
       {

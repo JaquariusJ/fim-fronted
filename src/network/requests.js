@@ -1,4 +1,5 @@
 import axios from "axios"
+import routes from '@/router/index'
 
 const whilteUrl = ['/login','/registry']
 
@@ -28,7 +29,7 @@ export function devServer(config){
         return res.data
     },error => {
        if(error.response.status === 403){
-
+           routes.push("/login")
        }
     })
     return dev(config)

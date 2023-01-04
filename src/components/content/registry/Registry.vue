@@ -142,7 +142,7 @@ export default {
           method: "post",
           data: this.registryUser
         }).then(res => {
-          if(res.data.code !== 200){
+          if(res.code !== 200){
             this.registry_error()
           }else{
             this.registry_success()

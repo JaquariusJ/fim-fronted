@@ -121,7 +121,8 @@ export default {
 
 }
 .el-main {
-  background-color: #ffffff;
+  background: #ffffff;
+
 }
 
 .common-layout {

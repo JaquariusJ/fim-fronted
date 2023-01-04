@@ -15,8 +15,11 @@
               v-model="loginUser.username"
               placeholder="请输入用户名"
               prefix-icon="User"
-              class="login-input"
-          />
+              class="input"
+          >
+          </el-input>
+<!--          <Input title="UserName" v-model:input-value="loginUser.username"></Input>-->
+
         </el-form-item>
         <el-form-item prop="password">
           <el-input
@@ -28,6 +31,7 @@
               prefix-icon="Lock"
               style=""
           />
+<!--          <Input title="PassWord" v-model:input-value="loginUser.password" input-type="password" @keyup.enter="loginIn()" show-password></Input>-->
         </el-form-item>
         <el-form-item class="btns">
           <el-button class="login-btn" plain type="primary" @click="loginIn()" :loading="login_ing" size="large">Login</el-button>
@@ -44,10 +48,13 @@
 import {Lock, User} from "@element-plus/icons-vue";
 import {devServer} from "@/network/requests";
 import { ElMessage } from 'element-plus'
+import Input from "@/components/common/LoginInput.vue";
+
 
 
 export default {
   name: "login",
+  components: {Input},
   data() {
     return {
       login_ing: false,
