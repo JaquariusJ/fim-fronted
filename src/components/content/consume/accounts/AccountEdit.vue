@@ -55,6 +55,7 @@
                   format="YYYY/MM/DD"
                   value-format="YYYY-MM-DD"
                   :default-value="new Date().toLocaleDateString()"
+                  :picker-options="expireTimeOption"
               />
             </el-form-item>
             <el-form-item label="金额">
@@ -101,6 +102,11 @@ export default {
       loading: false,
       innerDrawer: false,
       accountFrom: "",
+      expireTimeOption: {
+        disabledDate(time) {
+          return time.getTime() > Date.now() - 8.64e6;  //如果没有后面的-8.64e6就是不可以选择今天的
+        }
+      },
     }
   },
   methods: {
@@ -117,7 +123,7 @@ export default {
     },
     confirmAccount(){
       devServer({
-        url: '/accounts/save',
+        url: '/accounts/detail/save',
         method: 'post',
         data: this.accountFrom
       }).then(res => {

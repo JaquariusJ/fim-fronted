@@ -18,19 +18,45 @@
             <span>类别设置</span>
           </div>
         </template>
+<!--        支出-->
         <el-tabs v-model="activeType" class="demo-tabs" @tabChange="getIconListByType(activeTypeCode)">
           <el-tab-pane label="支出" name="pay">
             <icon-item v-for="(item,index) in activeIcons" :icon-file-name="item.logoName" :icon-title="item.title" :key="index" backColor="#fca60b">
               <template #top-right-btn>
-                <el-icon @click="removeItem(activeIcons,index)" class="removeBtn" size="17px"><RemoveFilled /></el-icon>
+                <el-popconfirm
+                    width="220"
+                    confirm-button-text="OK"
+                    cancel-button-text="No"
+                    :icon="InfoFilled"
+                    icon-color="#626AEF"
+                    title="删除类别会同时删除该类别下的所有记账"
+                    @confirm="removeItem(activeIcons,index)"
+                >
+                  <template #reference>
+                    <el-icon class="removeBtn" size="17px"><RemoveFilled /></el-icon>
+                  </template>
+                </el-popconfirm>
               </template>
             </icon-item>
-            <icon-item :icon-file-name="plusIcon.logoName" :key="-1" @click="getDefaultIcons"></icon-item>
+              <icon-item :icon-file-name="plusIcon.logoName" :key="-1" @click="getDefaultIcons"></icon-item>
           </el-tab-pane>
+<!--          收入-->
           <el-tab-pane label="收入" name="income">
             <icon-item v-for="(item,index) in activeIcons" :icon-file-name="item.logoName" :icon-title="item.title"  :key="index" backColor="#fca60b">
               <template #top-right-btn>
-                <el-icon @click="removeItem(activeIcons,index)" class="removeBtn" size="17px"><RemoveFilled /></el-icon>
+                <el-popconfirm
+                    width="220"
+                    confirm-button-text="OK"
+                    cancel-button-text="No"
+                    :icon="InfoFilled"
+                    icon-color="#626AEF"
+                    title="删除类别会同时删除该类别下的所有记账"
+                    @confirm="removeItem(activeIcons,index)"
+                >
+                  <template #reference>
+                    <el-icon class="removeBtn" size="17px"><RemoveFilled /></el-icon>
+                  </template>
+                </el-popconfirm>
               </template>
             </icon-item>
             <icon-item :icon-file-name="plusIcon.logoName" :index="-1" :key="-1" @click="getDefaultIcons"></icon-item>

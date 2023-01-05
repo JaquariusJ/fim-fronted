@@ -25,7 +25,7 @@
         <div class="demo-date-picker">
           <div class="container">
             <div class="block">
-                <el-statistic group-separator="," :precision="2" :value="totalPay" title="收入"></el-statistic>
+                <el-statistic group-separator="," :precision="2" :value="totalPay" title="支出"></el-statistic>
             </div>
           </div>
         </div>
@@ -34,7 +34,7 @@
         <div class="demo-date-picker">
           <div class="container">
             <div class="block">
-              <el-statistic group-separator="," :precision="2" :value="totalIncome" title="支出"></el-statistic>
+              <el-statistic group-separator="," :precision="2" :value="totalIncome" title="收入"></el-statistic>
             </div>
           </div>
         </div>
@@ -70,6 +70,9 @@
                   <span class="mount" v-else >+</span>
                   <span class="mount">{{item.mount}} </span>
                 </el-col>
+                <button class="delete-btn" @click.stop="deleteAccount(item)">
+                  <el-icon color="red" size="30px" ><ShoppingTrolley /></el-icon>
+                </button>
               </el-row>
 
           </el-card>
@@ -104,7 +107,7 @@ export default {
       currentPage: 1,//起始页数值为1
       loading: false,
       totalPages: "",//取后端返回内容的总页数
-      allAccounts: [],
+      allAccounts: [],  //从后端取的数据
       activeAccount:"",
       // 其他
       Edit,
@@ -114,7 +117,9 @@ export default {
       dialog: false,
       addShowColor: '#71d381',
       subShowColor: '#e86d6d',
-      isNewCreate: true
+      isNewCreate: true,
+      totalPay: 0,
+      totalIncome: 0
     }
   },
   computed: {
@@ -136,28 +141,30 @@ export default {
       }
       return pays
     },
-    totalPay(){
-      let payArr = this.acccounts.filter(e => e.accountLogo.type === 0);
-      if(payArr.length === 0){
-        return 0
-      }
-      return payArr.map(n => Number(n.mount)).reduce((n1,n2) =>  n1+n2).toFixed(2);
-    },
-    totalIncome(){
-      let payArr = this.acccounts.filter(e => e.accountLogo.type === 1);
-      if(payArr.length === 0){
-        return 0
-      }
-      return payArr.map(n => Number(n.mount)).reduce((n1,n2) =>  n1+n2).toFixed(2);
-    },
+    // totalPay(){
+    //   let payArr = this.acccounts.filter(e => e.accountLogo.type === 0);
+    //   if(payArr.length === 0){
+    //     return 0
+    //   }
+    //   return payArr.map(n => Number(n.mount)).reduce((n1,n2) =>  n1+n2).toFixed(2);
+    // },
+    // totalIncome(){
+    //   let payArr = this.acccounts.filter(e => e.accountLogo.type === 1);
+    //   if(payArr.length === 0){
+    //     return 0
+    //   }
+    //   return payArr.map(n => Number(n.mount)).reduce((n1,n2) =>  n1+n2).toFixed(2);
+    // },
     accountDetails(){
       return getGroupObject(this.allAccounts,"accountDate");
     }
   },
   created() {
     this.getAccountData()
-  },
+    //获取统计信息
+    this.getTotalInfo()
 
+  },
   components: {
     IconItem,
     AccountEdit
@@ -172,7 +179,7 @@ export default {
     },
     getAccountData() {
       devServer({
-        url: '/accounts/pagelist',
+        url: '/accounts/detail/pagelist',
         method: 'get',
         params: {
           pageNo: this.currentPage,
@@ -201,13 +208,94 @@ export default {
     addAccount(){
       this.dialog = true;
       this.isNewCreate = true
-    }
+    },
+    deleteAccount(item){
+      // 更新所有账单
+      let index = 0
+      for (let i = 0; i < this.allAccounts.length; i++) {
+        let account = this.allAccounts[i];
+        console.log(this.allAccounts);
+        if(account.id === item.id){
+          index = i;
+          break;
+        }
+      }
+      this.allAccounts.splice(index,1)
+      //提交给后台删除
+     devServer({
+       url: '/accounts/detail/'+item.id,
+       method: 'delete',
+     }).then(res =>{
+       console.log(res);
+     })
+    },
+    getTotalInfo(){
+      devServer({
+        url: '/accounts/detail/totalInfo',
+        method: 'get',
+        params: {
 
+        }
+      }).then(res => {
+        this.totalPay = res.data.totalPay
+        this.totalIncome = res.data.totalIncome
+      })
+    }
   }
 }
 </script>
 
 <style scoped>
+
+/*删除框 start*/
+.el-timeline .el-row .delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  cursor: pointer;
+  background-image: linear-gradient(to top, #D8D9DB 0%, #fff 80%, #FDFDFD 100%);
+  border-radius: 30px;
+  border: 1px solid #8F9092;
+  transition: all 0.2s ease;
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px #fff;
+  transform: translate(100%, 0%);
+  width: 60px;
+  height: 60px;
+  background-color: #ff5858;
+  color: #fff;
+  padding: .5rem 1rem;
+  position: absolute;
+  right: 0;
+  top: 10px;
+  bottom: 0;
+  opacity: 0;
+}
+
+.el-timeline .el-row:hover .delete-btn {
+  transform: translate(130%, 0);
+  opacity: 1;
+}
+
+
+.delete-btn:hover {
+  box-shadow: 0 4px 3px 1px #FCFCFC, 0 6px 8px #D6D7D9, 0 -4px 4px #CECFD1, 0 -6px 4px #FEFEFE, inset 0 0 3px 3px #CECFD1;
+}
+
+.delete-btn:active {
+  box-shadow: 0 4px 3px 1px #FCFCFC, 0 6px 8px #D6D7D9, 0 -4px 4px #CECFD1, 0 -6px 4px #FEFEFE, inset 0 0 5px 3px #999, inset 0 0 30px #aaa;
+}
+
+.delete-btn:focus {
+  box-shadow: 0 4px 3px 1px #FCFCFC, 0 6px 8px #D6D7D9, 0 -4px 4px #CECFD1, 0 -6px 4px #FEFEFE, inset 0 0 5px 3px #999, inset 0 0 30px #aaa;
+}
+
+
+/*删除框 end*/
+
 
 .demo-date-picker {
   display: flex;
@@ -253,9 +341,6 @@ export default {
   height: 70px;
   box-shadow: 10px 10px 10px;
 
-}
-
-.el-timeline .totalMsg{
 }
 
 .el-timeline .el-card{
@@ -356,7 +441,7 @@ export default {
 }
 
 
-/*滚动条*/
+/*滚动条 start*/
 .infinite-list {
   height: 680px;
   padding: 0;
@@ -374,7 +459,7 @@ export default {
 .infinite-list .infinite-list-item + .list-item {
   margin-top: 10px;
 }
-
+/*滚动条 end*/
 
 
 </style>
