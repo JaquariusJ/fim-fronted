@@ -4,7 +4,6 @@
       <el-breadcrumb-item>记账本</el-breadcrumb-item>
     </el-breadcrumb>
 
-
     <el-row :gutter="20">
       <el-col :span="6">
         <div class="demo-date-picker">
@@ -26,8 +25,7 @@
         <div class="demo-date-picker">
           <div class="container">
             <div class="block">
-              <span class="demonstration">收入</span>
-              <div>{{ totalPay }}</div>
+                <el-statistic group-separator="," :precision="2" :value="totalPay" title="收入"></el-statistic>
             </div>
           </div>
         </div>
@@ -36,8 +34,7 @@
         <div class="demo-date-picker">
           <div class="container">
             <div class="block">
-              <span class="demonstration">支出</span>
-              <div>{{totalIncome}}</div>
+              <el-statistic group-separator="," :precision="2" :value="totalIncome" title="支出"></el-statistic>
             </div>
           </div>
         </div>
@@ -47,37 +44,41 @@
         <div class="demo-date-picker">
           <div class="container">
             <div class="block">
-              <el-button class="addAccount" type="success" plain @click="changeDialog(true)" @closeDrawer="changeDialog" color="#00a2ff" >点我记账</el-button>
+              <el-button class="addAccount" type="success" plain @click="addAccount" color="#00a2ff">点我记账</el-button>
             </div>
           </div>
         </div>
       </el-col>
     </el-row>
-    <el-timeline>
-      <el-timeline-item v-for="(accounts,accountDate) in accountDetails" :timestamp="accountDate+' ' + dateUtils.getCHDayName(accountDate)" placement="top">
-        <el-card>
-<!--          每一行消费记录-->
-          <el-row :gutter="0" v-for="item in accounts"  @click="openAccount(item)">
-            <el-col :span="5">
-              <div>
-                <icon-item :icon-file-name="item.accountLogo.logoName" :back-color="item.accountLogo.type === 0?subShowColor:addShowColor"></icon-item>
-                {{item.accountLogo.title}}
-                ----{{item.mask}}
-              </div>
-            </el-col>
-            <el-col :span="15">
-            </el-col>
-            <el-col :span="3">
-              <span class="mount" v-if="item.accountLogo.type === 0" >-</span>
-              <span class="mount" v-else >+</span>
-              <span class="mount">{{item.mount}} </span>
-            </el-col>
-          </el-row>
-        </el-card>
-      </el-timeline-item>
-    </el-timeline>
+
+<!--    所有消费记录-->
+      <el-timeline class="infinite-list" v-infinite-scroll="load" style="overflow:auto" infinite-scroll-disabled="disabled">
+        <el-timeline-item v-for="(accounts,accountDate) in accountDetails"  :key="accountDate"  :timestamp="accountDate+' ' + dateUtils.getCHDayName(accountDate)" placement="top">
+          <el-card>
+            <!--          每一行消费记录-->
+              <el-row :gutter="0"  @click="openAccount(item)" v-for="item in accounts" class="infinite-list-item">
+                <el-col :span="5">
+                  <div>
+                    <icon-item :icon-file-name="item.accountLogo.logoName" :back-color="item.accountLogo.type === 0?subShowColor:addShowColor"></icon-item>
+                    <span class="mount">{{item.accountLogo.title}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="15">
+                </el-col>
+                <el-col :span="3">
+                  <span class="mount" v-if="item.accountLogo.type === 0" >-</span>
+                  <span class="mount" v-else >+</span>
+                  <span class="mount">{{item.mount}} </span>
+                </el-col>
+              </el-row>
+
+          </el-card>
+        </el-timeline-item>
+        <p v-if="noMore" style="margin-top:10px;font-size:13px;color:#ccc">到底啦</p>
+      </el-timeline>
+
     <!--    记账表单-->
-    <account-add v-model:dialog="dialog" v-model:account="activeAccount"></account-add>
+    <account-edit v-model:dialog="dialog" v-model:account="activeAccount" :is-new-create="isNewCreate"></account-edit>
   </div>
 
 </template>
@@ -90,7 +91,7 @@ import {
   Edit
 } from '@element-plus/icons-vue'
 
-import AccountAdd from "@/components/content/consume/accounts/AccountAdd.vue";
+import AccountEdit from "@/components/content/consume/accounts/AccountEdit.vue";
 import {devServer} from "@/network/requests";
 import IconItem from "@/components/SvgIcon/IconItem.vue";
 import {getGroupArray,getGroupObject} from "@/common/utils/group";
@@ -98,7 +99,32 @@ import {dateUtils} from "@/common/utils/date";
 
 export default {
   name: "AccountList",
+  data(){
+    return {
+      currentPage: 1,//起始页数值为1
+      loading: false,
+      totalPages: "",//取后端返回内容的总页数
+      allAccounts: [],
+      activeAccount:"",
+      // 其他
+      Edit,
+      value1: "",
+      value2: new Date().toString(),
+      table: false,
+      dialog: false,
+      addShowColor: '#71d381',
+      subShowColor: '#e86d6d',
+      isNewCreate: true
+    }
+  },
   computed: {
+    noMore() {
+      //当起始页数大于总页数时停止加载
+      return this.currentPage >= this.totalPages;
+    },
+    disabled() {
+      return this.loading || this.noMore;
+    },
     dateUtils() {
       return dateUtils
     },
@@ -123,49 +149,58 @@ export default {
         return 0
       }
       return payArr.map(n => Number(n.mount)).reduce((n1,n2) =>  n1+n2).toFixed(2);
+    },
+    accountDetails(){
+      return getGroupObject(this.allAccounts,"accountDate");
     }
   },
   created() {
-    devServer({
-      url: '/accounts/pagelist',
-      method: 'get',
-      params: {
-        pageNo: 1,
-        pageNum: 10
-      }
+    this.getAccountData()
+  },
 
-    }).then(res => {
-      if(res.code === 200){
-        let result = res.data.list;
-        this.accountDetails = getGroupObject(result,"accountDate");
-      }
-    })
-  },
-  data(){
-    return {
-      Edit,
-      value1: "",
-      value2: new Date().toString(),
-      table: false,
-      dialog: false,
-      activeAccount: "",
-      accountDetails: [
-      ],
-      addShowColor: '#71d381',
-      subShowColor: '#e86d6d'
-    }
-  },
   components: {
     IconItem,
-    AccountAdd
+    AccountEdit
   },
   methods: {
+    load() {
+      //滑到底部时进行加载
+      this.loading = true;
+      this.currentPage += 1; //页数+1
+      this.getAccountData(); //调用接口，此时页数+1，查询下一页数据
+      console.log("加载中");
+    },
+    getAccountData() {
+      devServer({
+        url: '/accounts/pagelist',
+        method: 'get',
+        params: {
+          pageNo: this.currentPage,
+          pageNum: 2
+        }
+
+      }).then(res => {
+        if(res.code === 200){
+          const newAccounts = res.data.list;
+          this.allAccounts = this.allAccounts.concat(newAccounts); //因为每次后端返回的都是数组，所以这边把数组拼接到一起
+          this.totalPages = res.data.pages;
+          this.loading = false;
+        }
+      }).catch(err => {
+        console.log(err);
+      });
+    },
     openAccount(item){
       this.changeDialog(true);
       this.activeAccount = item
+      this.isNewCreate = false
     },
     changeDialog(newValue){
       this.dialog = newValue;
+    },
+    addAccount(){
+      this.dialog = true;
+      this.isNewCreate = true
     }
 
   }
@@ -267,7 +302,7 @@ export default {
   text-align: center;
   font-size: 20px;
   line-height: 80px;
-  padding-right: 10px;
+  /*padding-right: 10px;*/
 }
 
 /*金额*/
@@ -321,6 +356,24 @@ export default {
 }
 
 
+/*滚动条*/
+.infinite-list {
+  height: 680px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.infinite-list .infinite-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--el-color-primary-light-9);
+  margin: 10px;
+  /*color: var(--el-color-primary);*/
+}
+.infinite-list .infinite-list-item + .list-item {
+  margin-top: 10px;
+}
 
 
 

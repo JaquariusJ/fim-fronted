@@ -8,10 +8,15 @@
       :close-on-press-escape="true"
       :close-on-click-modal="true"
       @close="closeDrawer"
+      @open="fillFrom"
   >
       <div class="demo-drawer__content">
           <!--      表单-->
-          <el-form :model="accountFrom" label-position="left" label-width="50px" size="large">
+          <el-form
+                ref="formRef"
+                  :model="accountFrom"
+                   label-position="left"
+                  label-width="50px" size="large">
 <!--            类别-->
             <el-form-item label="类别">
 
@@ -25,12 +30,14 @@
                   v-model="accountFrom.logoid"
               >
                 <template #reference>
-                  <icon-item :icon-file-name="showIcon.logoName" back-color="#fca60b"></icon-item>
+                  <div>
+                    <icon-item :icon-file-name="showIcon.logoName" back-color="#fca60b"></icon-item>
+                  </div>
                 </template>
-
                 <category-list @showicon="showSelectIcon" @closePopover="closePopover" v-model:showIcon="showIcon"></category-list>
               </el-popover>
 
+              <span style="margin-right: 30px">{{showIcon.title}}</span>
               <el-link type="primary" @click="innerDrawer = true">类别管理</el-link>
 <!-- 类别编辑的组件-->
               <category-edit v-model="innerDrawer"></category-edit>
@@ -80,48 +87,21 @@ import IconItem from "@/components/SvgIcon/IconItem.vue";
 import CategoryList from "@/components/content/consume/accounts/CategoryList.vue";
 
 export default {
-  name: "AccountAdd",
+  name: "AccountEdit",
   data(){
     return {
       selectIconBackColor: '#fca60b',
       isSelected: false,
       evaluateVisible: false,
       showIcon: {
-        logoName: "canyin",
-        title: "餐饮"
+        logoName: "plus",
+        title: ""
       },
       Edit,
       loading: false,
       innerDrawer: false,
-      accountFrom: {
-        logoid: "",
-        mask: this.account,
-        accountDate: this.account.accountDate,
-        mount: this.account.mount
-      },
+      accountFrom: "",
     }
-  },
-  props: {
-    dialog: {
-      type: Boolean
-    },
-    account: Object,
-    isNewCreate: {
-      type: Boolean,
-      required: true
-    }
-  },
-  watch: {
-    //监听传进来的消费账单
-    account(val){
-          this.accountFrom = {
-            logoid: this.account.accountLogo.id,
-            mask: this.account.mask,
-            accountDate: this.account.accountDate,
-            mount: this.account.mount
-          };
-          this.showIcon = this.account.accountLogo
-      }
   },
   methods: {
     showSelectIcon(item){
@@ -131,6 +111,7 @@ export default {
     closePopover(newValue){
       this.evaluateVisible = newValue
     },
+    //关闭抽屉
     closeDrawer(){
       this.$emit('update:dialog',false)
     },
@@ -144,20 +125,69 @@ export default {
           success("添加成功！")
         }
       });
+      //关闭窗口
       this.$refs.drawerRef.close()
+      //刷新页面
+      this.$router.go(0)
+    },
+    resetFrom(formEl){
+      if(!formEl)return
+      formEl.resetFields()
+    },
+    fillFrom(){
+        //新建
+      if(this.isNewCreate){
+          this.accountFrom = {
+            id: "",
+            logoid: "",
+            mask: "",
+            accountDate: "",
+            mount: ""
+          };
+          this.showIcon = {
+            logoName: "plus",
+            title: ""
+          }
+        }else{
+          //编辑
+          this.accountFrom = {
+            id: this.account.id,
+            logoid: this.account.accountLogo.id,
+            mask: this.account.mask,
+            accountDate: this.account.accountDate,
+            mount: this.account.mount
+          };
+          this.showIcon = this.account.accountLogo
+        }
 
     }
+  },
+  computed: {
+    subDialog() {
+      return this.dialog},
   },
   components: {
     CategoryList,
     IconItem,
     CategoryEdit
   },
-  computed: {
-    subDialog() {
-      return this.dialog},
-  }
+  props: {
+    dialog: {
+      type: Boolean
+    },
+    account: {
+      type: Object,
+      default: ""
+    },
+    isNewCreate: {
+      type: Boolean,
+      default: true,
+      required: true
+    }
+  },
+  watch: {
 
+  },
 }
 </script>
 
